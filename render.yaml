@@ -1,0 +1,26 @@
+# Blueprint Render : crée la base PostgreSQL et l'API en une fois.
+databases:
+  - name: urdo-db
+    plan: free
+    databaseName: urdo
+
+services:
+  - type: web
+    name: urdo-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install --include=dev && npx prisma generate && npx prisma db push && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: urdo-db, property: connectionString }
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: CORS_ORIGINS
+        sync: false   # à renseigner : l'adresse Netlify, ex. https://urdo.netlify.app
